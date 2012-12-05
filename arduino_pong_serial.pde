@@ -9,9 +9,13 @@ Rae Milne
  */
 
 import processing.serial.*;
+import ddf.minim.*;
+
+Minim minim;
+AudioPlayer player;
 
 Serial myPort;
-String vals[] = new String[3];
+String vals[] = new String[2];
 
 final int STATE_START = 0;
 final int STATE_PLAY = 1;
@@ -31,12 +35,16 @@ int pad_ht = 60; //height of the paddle
 
 int playerOneScore = 0;
 int playerTwoScore = 0;
-int winScore = 3;
+int winScore = 10;
 
 Ball pingPong;   //declare Ball
 
-float upVal = 0;
-float downVal = 0;
+float prevRtPadVal;
+float currentRtPadVal;
+
+float speed;
+float ySpeedUp = 0;
+float ySpeedDown = 0;
 int btnVal = 1;
 
 void setup() {
@@ -46,8 +54,9 @@ void setup() {
   background(0);
 
   vals[0] = "0";
-  vals[1] = "0";
-  vals[2] = "1";
+  vals[1] = "1";
+  // vals[2] = "1";
+  prevRtPadVal = 0;
 
   int portId = 0;
   String portName = Serial.list()[portId];
@@ -59,6 +68,9 @@ void setup() {
   font = loadFont("Helvetica-Bold-28.vlw");
   textAlign(CENTER);
   textFont(font, 18);
+
+  minim = new Minim(this);
+  player = minim.loadFile("pong.mp3", 2048);
 }
 
 void draw() {
@@ -79,34 +91,23 @@ void draw() {
   }
 }
 
-void displayScores() {
-
-  text(playerOneScore, 100, 100);
-  text(playerTwoScore, width-100, 100);
-}
-
-void drawDividingLine() {
-  strokeWeight(5);
-  stroke(255);
-  line(width/2, 0, width/2, height);
-}
-
 void drawState_Start() {
 
   background(0);
   textAlign(CENTER);
   text("Press button to Start", width/2, height/2);
 
-  btnVal = int(vals[2]);
+  btnVal = int(vals[1]);
 
   if (btnVal == 0) 
   {
     state = STATE_PLAY;
   }
-
 }
 
 void drawState_Play() {
+
+  player.play();
 
   println(vals);
 
@@ -116,17 +117,45 @@ void drawState_Play() {
 
   LPy = pingPong.y - pad_ht/2;
   //RPy = pingPong.y - pad_ht/2;
+
+  currentRtPadVal = float(vals[0]);
+  /*
+  speed = abs(currentRtPadVal - prevRtPadVal);
+   
+   print("speed: ");
+   println(speed);
+   
+   if (speed >= 2) { 
+   */
+
+  RPy = map(currentRtPadVal, 0, 150, 0, height);
+
+  //   prevRtPadVal = float(vals[0]);
+  // }
+
+  /*
   
-  float ySpeedUp = map(float(vals[0]), 0, 1023, 0, 10);
-  RPy+=ySpeedUp;
-
-  float ySpeedDown = map(float(vals[1]), 0, 1023, 0, 10);
-  RPy-=ySpeedDown;
-
+   speed = currentRtPadVal - prevRtPadVal;
+   
+   print("speed: ");
+   println(speed);
+   
+   if (speed >= 5) { 
+   ySpeedDown = map(speed, 0, 150, 1, 10);
+   RPy+= ySpeedDown;
+   //RPy = map(currentRtPadVal, 5, 250, 0, height);
+   prevRtPadVal = float(vals[0]);
+   } else if (speed < 5) {
+   ySpeedUp = map(speed, 0, 150, 1, 10);
+   RPy-= ySpeedUp;
+   prevRtPadVal = float(vals[0]);
+   } else {
+   }
+   
+   */
 
   LPy = constrain(LPy, 0, (height - pad_ht)); //set boundaries to Y-coordinate
   RPy = constrain(RPy, 0, (height - pad_ht)); //set boundaries to Y-coordinate
-
 
   leftPaddle(); 
   rightPaddle(); 
@@ -148,11 +177,11 @@ void drawState_Play() {
     state = STATE_SCORE;
   }
 
-
   if (pingPong.x > width) {
     playerOneScore++;
     state = STATE_SCORE;
   }
+
 
   displayScores();
 }
@@ -169,8 +198,9 @@ void drawState_Score() {
   }
 }
 
-
 void drawState_Win() {
+
+  player.pause();
 
   background(0);
 
@@ -184,15 +214,15 @@ void drawState_Win() {
 
   text("Press button to Play Another Game", (width/2), (height/2 + 50));
 
-  btnVal = int(vals[2]);
+  btnVal = int(vals[1]);
 
   if (btnVal == 0) {
     playerOneScore = 0;
     playerTwoScore = 0;
+    player.rewind();
     state = STATE_PLAY;
   }
 }
-
 
 void serialEvent( Serial serial) {
 
@@ -212,7 +242,7 @@ void parseSerialData( String s ) {
   s= trim(s);
 
   String temp[] = split(s, ',');
-  if ( temp.length == 3) {
+  if ( temp.length == 2) {
     vals = temp;
   }
 }
@@ -223,5 +253,27 @@ void leftPaddle() {
 
 void rightPaddle() {
   rect(RPx, RPy, pad_d, pad_ht);
+}
+
+void displayScores() {
+
+  text(playerOneScore, 100, 100);
+  text(playerTwoScore, width-100, 100);
+}
+
+void drawDividingLine() {
+  strokeWeight(5);
+  stroke(255);
+  line(width/2, 0, width/2, height);
+}
+
+void stop()
+{
+  // always close Minim audio classes when you are done with them
+  player.close();
+  // always stop Minim before exiting
+  minim.stop();
+
+  super.stop();
 }
 
