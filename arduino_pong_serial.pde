@@ -119,40 +119,8 @@ void drawState_Play() {
   //RPy = pingPong.y - pad_ht/2;
 
   currentRtPadVal = float(vals[0]);
-  /*
-  speed = abs(currentRtPadVal - prevRtPadVal);
-   
-   print("speed: ");
-   println(speed);
-   
-   if (speed >= 2) { 
-   */
-
+ 
   RPy = map(currentRtPadVal, 0, 150, 0, height);
-
-  //   prevRtPadVal = float(vals[0]);
-  // }
-
-  /*
-  
-   speed = currentRtPadVal - prevRtPadVal;
-   
-   print("speed: ");
-   println(speed);
-   
-   if (speed >= 5) { 
-   ySpeedDown = map(speed, 0, 150, 1, 10);
-   RPy+= ySpeedDown;
-   //RPy = map(currentRtPadVal, 5, 250, 0, height);
-   prevRtPadVal = float(vals[0]);
-   } else if (speed < 5) {
-   ySpeedUp = map(speed, 0, 150, 1, 10);
-   RPy-= ySpeedUp;
-   prevRtPadVal = float(vals[0]);
-   } else {
-   }
-   
-   */
 
   LPy = constrain(LPy, 0, (height - pad_ht)); //set boundaries to Y-coordinate
   RPy = constrain(RPy, 0, (height - pad_ht)); //set boundaries to Y-coordinate
