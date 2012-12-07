@@ -6,6 +6,10 @@ Rae Milne
  2 Dec 2012
  Physical Computing
  
+ Includes Serial Code from
+ Making Things Talk
+ by Tom Igoe
+ 
  */
 
 import processing.serial.*;
@@ -15,7 +19,7 @@ Minim minim;
 AudioPlayer player;
 
 Serial myPort;
-String vals[] = new String[2];
+int vals[] = new int[2];
 
 final int STATE_START = 0;
 final int STATE_PLAY = 1;
@@ -24,11 +28,24 @@ final int STATE_WIN = 3;
 
 int state = STATE_START;
 
-int rad = 12; //radius of the ping pong ball
-float LPx = 25; //x-position of left paddle
-float RPx = 365; //x-position of right paddle
-float LPy = 0;
-float RPy = 0;
+//Ping Pong Variables
+int rad = 12; //radius
+
+//
+
+//Left Paddle Varibles
+
+float LPx = 0; // x-position 
+float LPy = 0; // y-position
+
+//Right Paddle Position
+
+float RPx = 0; // x-position 
+float RPy = 0; // y-position
+float prevRPy = 0;//previous y-position
+float rightMax = 150;
+float rightMin = 5;
+
 
 int pad_d = 10; //depth of the paddle
 int pad_ht = 60; //height of the paddle
@@ -47,16 +64,17 @@ float ySpeedUp = 0;
 float ySpeedDown = 0;
 int btnVal = 1;
 
+boolean madeContact;
+
 void setup() {
 
   size(400, 400);
   smooth();
   background(0);
 
-  vals[0] = "0";
-  vals[1] = "1";
+  vals[0] = 0;
+  vals[1] = 0;
   // vals[2] = "1";
-  prevRtPadVal = 0;
 
   int portId = 0;
   String portName = Serial.list()[portId];
@@ -115,41 +133,11 @@ void drawState_Play() {
   drawDividingLine();
   noStroke();
 
-  LPy = pingPong.y - pad_ht/2;
-  //RPy = pingPong.y - pad_ht/2;
+  drawLeftPaddle(); 
 
-  currentRtPadVal = float(vals[0]);
- 
-  RPy = map(currentRtPadVal, 0, 150, 0, height);
+  drawRightPaddle(); 
 
-  LPy = constrain(LPy, 0, (height - pad_ht)); //set boundaries to Y-coordinate
-  RPy = constrain(RPy, 0, (height - pad_ht)); //set boundaries to Y-coordinate
-
-  leftPaddle(); 
-  rightPaddle(); 
-
-  pingPong.bounceEdges();
-
-  if (pingPong.x < width/2) {
-    pingPong.bounceLeft(LPx, LPy, pad_ht, pad_d);
-    pingPong.display();
-  }
-
-  if (pingPong.x > width/2) {
-    pingPong.bounceRight(RPx, RPy, pad_ht, pad_d); 
-    pingPong.display();
-  }
-
-  if (pingPong.x < 0) {
-    playerTwoScore++;
-    state = STATE_SCORE;
-  }
-
-  if (pingPong.x > width) {
-    playerOneScore++;
-    state = STATE_SCORE;
-  }
-
+  drawBouncingBall();
 
   displayScores();
 }
@@ -158,7 +146,8 @@ void drawState_Score() {
 
   pingPong.reset();
 
-  if (playerOneScore == winScore || playerTwoScore == winScore) {
+  if (playerOneScore == winScore 
+    || playerTwoScore == winScore) {
     state = STATE_WIN;
   } 
   else {
@@ -180,7 +169,7 @@ void drawState_Win() {
     text("Player Two Wins!", width/2, height/2);
   }
 
-  text("Press button to Play Another Game", (width/2), (height/2 + 50));
+  text("Press button to Play Another Game", width/2, height/2 + 50);
 
   btnVal = int(vals[1]);
 
@@ -192,35 +181,46 @@ void drawState_Win() {
   }
 }
 
-void serialEvent( Serial serial) {
+void drawLeftPaddle() {
+  LPx = 25;
 
-  String s = serial.readStringUntil( '\n' );
+  LPy = pingPong.y - pad_ht/2;
 
-  if ( s == null ) {
-    // no thanks
-  }
-  else {
-    s = trim(s);
-    println( s );
-    parseSerialData(s);
-  }
-}
+  //set boundaries to Y-coordinate
+  LPy = constrain(LPy, 0, (height - pad_ht)); 
 
-void parseSerialData( String s ) {
-  s= trim(s);
-
-  String temp[] = split(s, ',');
-  if ( temp.length == 2) {
-    vals = temp;
-  }
-}
-
-void leftPaddle() {
   rect(LPx, LPy, pad_d, pad_ht);
 }
 
-void rightPaddle() {
+void drawRightPaddle() {
+
+  RPx = width-LPx;   
+  RPy = constrain(RPy, 0, (height - pad_ht)); 
   rect(RPx, RPy, pad_d, pad_ht);
+}
+
+void drawBouncingBall() {
+  pingPong.bounceEdges();
+
+  if (pingPong.x < width/2) {
+    pingPong.bounceLeft(LPx, LPy, pad_ht, pad_d);
+    pingPong.display();
+  }
+
+  if (pingPong.x > width/2) {
+    pingPong.bounceRight(RPx, RPy, pad_ht, pad_d); 
+    pingPong.display();
+  }
+
+  if (pingPong.x < 0) {
+    playerTwoScore++;
+    state = STATE_SCORE;
+  }
+
+  if (pingPong.x > width) {
+    playerOneScore++;
+    state = STATE_SCORE;
+  }
 }
 
 void displayScores() {
@@ -233,6 +233,32 @@ void drawDividingLine() {
   strokeWeight(5);
   stroke(255);
   line(width/2, 0, width/2, height);
+}
+
+
+void serialEvent( Serial ard_port) {
+
+  if (madeContact == false) {
+    ard_port.clear();
+    madeContact = true;
+    ard_port.write('\r');
+  }
+
+  String ard_string = ard_port.readStringUntil( '\n' );
+
+  if ( ard_string != null ) {
+    ard_string = trim(ard_string);
+    println( ard_string );
+    int vals[] = int(split(ard_string, ','));
+
+    if ( vals.length == 2) {
+      float rightRange = rightMax - rightMin;
+      RPy = height * (vals[1] - rightMin) / rightRange;
+      btnVal = vals[0];
+      
+      ard_port.write('\r');
+    }
+  }
 }
 
 void stop()
