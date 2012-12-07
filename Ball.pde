@@ -9,8 +9,8 @@ class Ball {
     r = tempR;
     x = random(1, width);
     y = random(1, height);
-    xspeed = 1;
-    yspeed = 1;
+    xspeed = 10;
+    yspeed = 10;
   }
 
   void reset() {
