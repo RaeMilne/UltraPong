@@ -155,7 +155,7 @@ void drawLeftPaddle() {
 void drawRightPaddle() {  
   RPx = width-LPx-pad_d;   
   RPy += (RPy - prevRPy) / 200.;
-  //RPy = constrain(RPy, 0, (height - pad_ht)); 
+  RPy = constrain(RPy, 0, (height - pad_ht)); 
   rect(RPx, RPy, pad_d, pad_ht);
 }
 
@@ -192,7 +192,7 @@ void displayScores() {
 }
 
 void drawDividingLine() {
-  strokeWeight(8);
+  strokeWeight(12);
   stroke(255);
   for (int i=0; i < height; i++) {
     line(width/2, (i*50), width/2, (i*50)+15);
@@ -230,7 +230,6 @@ void drawState_Win() {
 void serialEvent( Serial ard_port) {
 
   /*
-
    if (madeContact == false) {
    ard_port.clear();
    madeContact = true;
@@ -245,15 +244,20 @@ void serialEvent( Serial ard_port) {
     println( ard_string );
     vals = int(split(ard_string, ','));
 
-    if ( vals.length == 2) {
-      if (vals[0] <= rightMax) {
-        float rightRange = rightMax - rightMin;
-        RPy = (height-pad_ht) * (vals[0] - rightMin) / rightRange;
+    float RP[] = new float[3];
+
+    for (int i = 0; i < RP.length; i++) {
+      if ( vals.length == 2 && vals[0] <= rightMax) {
+        RP[i] = vals[0];
+        btnVal = vals[1];
       }
-      btnVal = vals[1];
 
       // ard_port.write('\r');
     }
+    
+    RPy = (RP[0] + RP[1] + RP[2])/3;
+    float rightRange = rightMax - rightMin;
+    RPy = (height-pad_ht) * ((RPy - rightMin) / rightRange);
   }
 }
 
