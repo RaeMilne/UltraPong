@@ -52,7 +52,7 @@ int btnVal = 1;
 //Score Variables
 int p1Score = 0;
 int p2Score = 0;
-int winScore = 10;
+int winScore = 100;
 
 
 
@@ -185,10 +185,14 @@ void drawBouncingBall() {
 }
 
 void displayScores() {
+  textSize(36);
+  text("player one", width/4, 50);
+  text("player two", width*3/4, 50);
 
   textSize(250);
-  text(p1Score, width/4, height/2+50);
-  text(p2Score, width-width/4, height/2+50);
+ text(p1Score, width/4, height/2+50);
+ // text(p2Score, width*3/4, height/2+50);
+ text(vals[0], width*3/4, height/2+50);
 }
 
 void drawDividingLine() {
@@ -204,16 +208,17 @@ void drawState_Win() {
   player.pause();
 
   background(bgCol);
-  textSize(48);
 
   if (p1Score == winScore) {
+    textSize(72);
     text("PLAYER ONE WINS!", width/2, height/2);
   }
 
   if (p2Score == winScore) {
+    textSize(72);
     text("PLAYER TWO WINS!", width/2, height/2);
   }
-
+  textSize(36);
   text("press button to play again", width/2, height/2 + 75);
 
   btnVal = int(vals[1]);
@@ -225,7 +230,6 @@ void drawState_Win() {
     state = STATE_PLAY;
   }
 }
-
 
 void serialEvent( Serial ard_port) {
 
@@ -254,7 +258,7 @@ void serialEvent( Serial ard_port) {
 
       // ard_port.write('\r');
     }
-    
+
     RPy = (RP[0] + RP[1] + RP[2])/3;
     float rightRange = rightMax - rightMin;
     RPy = (height-pad_ht) * ((RPy - rightMin) / rightRange);
