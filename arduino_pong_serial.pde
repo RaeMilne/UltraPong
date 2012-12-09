@@ -40,11 +40,11 @@ float LPy = 0; // y-position
 float RPx = 0; // x-position 
 float RPy = 0; // y-position
 float prevRPy = 0;//previous y-position
-float rightMax = 100;
-float rightMin = 5;
+float rightMax = 150;
+float rightMin = 20;
 
 //Control Variables
-int pad_d = 20; //depth of the paddle
+int pad_d = 15; //depth of the paddle
 int pad_ht = 120; //height of the paddle
 //float speed;
 int btnVal = 1;
@@ -52,7 +52,7 @@ int btnVal = 1;
 //Score Variables
 int p1Score = 0;
 int p2Score = 0;
-int winScore = 100;
+int winScore = 10;
 
 
 
@@ -190,9 +190,9 @@ void displayScores() {
   text("player two", width*3/4, 50);
 
   textSize(250);
- text(p1Score, width/4, height/2+50);
- // text(p2Score, width*3/4, height/2+50);
- text(vals[0], width*3/4, height/2+50);
+  text(p1Score, width/4, height/2+50);
+  text(p2Score, width*3/4, height/2+50);
+  //text(RPy, width*3/4, height/2+50);
 }
 
 void drawDividingLine() {
@@ -248,20 +248,29 @@ void serialEvent( Serial ard_port) {
     println( ard_string );
     vals = int(split(ard_string, ','));
 
-    float RP[] = new float[3];
+    /*
 
-    for (int i = 0; i < RP.length; i++) {
-      if ( vals.length == 2 && vals[0] <= rightMax) {
-        RP[i] = vals[0];
-        btnVal = vals[1];
-      }
+     float RP[] = new float[3];
+     
+     for (int i = 0; i < RP.length; i++) {
+     if ( vals.length == 2 && vals[0] <= rightMax) {
+     RP[i] = vals[0];
+     btnVal = vals[1];
+     }
+     
+     // ard_port.write('\r');
+     }
+     
+     RPy = (RP[0] + RP[1] + RP[2])/3;
+     
+     */
 
-      // ard_port.write('\r');
-    }
-
-    RPy = (RP[0] + RP[1] + RP[2])/3;
     float rightRange = rightMax - rightMin;
-    RPy = (height-pad_ht) * ((RPy - rightMin) / rightRange);
+
+    if ( vals.length == 2 && vals[0] <= rightMax) {
+      RPy = (height-pad_ht) * ((vals[0] - rightMin) / rightRange);
+      btnVal = vals[1];
+    }
   }
 }
 
