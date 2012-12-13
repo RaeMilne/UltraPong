@@ -5,12 +5,12 @@ class Ball {
   float xspeed,yspeed; // speed
   
   // Constructor
-  Ball(float tempR) {
-    r = tempR;
+  Ball(float _rad, float _speed) {
+    r = rad;
     x = random(1, width);
     y = random(1, height);
-    xspeed = 10;
-    yspeed = 10;
+    xspeed = _speed;
+    yspeed = _speed;
   }
 
   void reset() {

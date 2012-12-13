@@ -1,12 +1,12 @@
 /*
 Rae Milne
- Arduino Pong
- V3.1
+ULTRAPONG
  
- 2 Dec 2012
+ 18 Dec 2012
  Physical Computing
  
- includes Serial Code from
+ includes Serial Code
+ modified from:
  Making Things Talk
  by Tom Igoe
  
@@ -30,6 +30,7 @@ int state = STATE_START;
 
 //Ping Pong Variables
 int rad = 15; //radius
+int speed = 4;
 Ball pingPong;   //declare Ball
 
 //Left Paddle Position
@@ -40,13 +41,12 @@ float LPy = 0; // y-position
 float RPx = 0; // x-position 
 float RPy = 0; // y-position
 float prevRPy = 0;//previous y-position
-float rightMax = 150;
-float rightMin = 20;
+float rightMax = 210;
+float rightMin = 50;
 
 //Control Variables
 int pad_d = 15; //depth of the paddle
 int pad_ht = 120; //height of the paddle
-//float speed;
 int btnVal = 1;
 
 //Score Variables
@@ -54,36 +54,35 @@ int p1Score = 0;
 int p2Score = 0;
 int winScore = 10;
 
-
-
 //Background and Image Values
 int bgCol = 50;
 PShape startImage;
 
 void setup() {
 
+  //set up Background and Start Display
   size(displayWidth, displayHeight);
   shapeMode(CENTER);
   startImage = loadShape("startImage.svg");
-
   smooth();
   background(bgCol);
 
-
-  vals[0] = 0;
-  vals[1] = 1;
+  //set up text variables
+  PFont score;
+  score = loadFont("MuseoSans-900-96.vlw");
+  textFont(score, 72);
+  textAlign(CENTER);
+ 
+  vals[0] = 0; //initialize Paddle val
+  vals[1] = 1; //initialize Button val
 
   int portId = 0;
   String portName = Serial.list()[portId];
   myPort = new Serial(this, portName, 9600);
 
-  pingPong = new Ball(rad);
-
-  PFont score;
-  score = loadFont("MuseoSans-900-96.vlw");
-  textFont(score, 72);
-  textAlign(CENTER);
-
+  pingPong = new Ball(rad, speed);
+  
+  //set up audio
   minim = new Minim(this);
   player = minim.loadFile("pong.mp3", 2048);
 }
@@ -119,7 +118,7 @@ void drawState_Start() {
 
 void drawState_Play() {
 
-  player.play();
+  player.play(); //start music
 
   background(bgCol);
   drawDividingLine();
@@ -154,7 +153,7 @@ void drawLeftPaddle() {
 
 void drawRightPaddle() {  
   RPx = width-LPx-pad_d;   
-  RPy += (RPy - prevRPy) / 200.;
+  RPy += (RPy - prevRPy) / 50.;
   RPy = constrain(RPy, 0, (height - pad_ht)); 
   rect(RPx, RPy, pad_d, pad_ht);
 }
@@ -233,14 +232,7 @@ void drawState_Win() {
 
 void serialEvent( Serial ard_port) {
 
-  /*
-   if (madeContact == false) {
-   ard_port.clear();
-   madeContact = true;
-   ard_port.write('\r');
-   }
-   */
-
+  //read in values
   String ard_string = ard_port.readStringUntil( '\n' );
 
   if ( ard_string != null) {
@@ -248,26 +240,10 @@ void serialEvent( Serial ard_port) {
     println( ard_string );
     vals = int(split(ard_string, ','));
 
-    /*
-
-     float RP[] = new float[3];
-     
-     for (int i = 0; i < RP.length; i++) {
-     if ( vals.length == 2 && vals[0] <= rightMax) {
-     RP[i] = vals[0];
-     btnVal = vals[1];
-     }
-     
-     // ard_port.write('\r');
-     }
-     
-     RPy = (RP[0] + RP[1] + RP[2])/3;
-     
-     */
-
     float rightRange = rightMax - rightMin;
 
     if ( vals.length == 2 && vals[0] <= rightMax) {
+      //map y-location of right paddle
       RPy = (height-pad_ht) * ((vals[0] - rightMin) / rightRange);
       btnVal = vals[1];
     }
